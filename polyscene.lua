@@ -6,9 +6,16 @@ local parser = argparse("polyscene", "transclude the contents of .poly files int
 parser:argument("command", "What to do with the scene"):choices({"add", "remove"})
 parser:argument("destination", "The .poly file to add the scene into")
 parser:argument("source", "The .poly file to add into the target .poly")
--- parser:option("-y --yes", "Skip prompting the user for confirmation")
+parser:option("-y --yes", "Skip prompting the user for confirmation", false):args("?")
 
 local args = parser:parse()
+
+if not args.yes then
+    printf("Write scene %s into destination %s ...? [y/N]", args.source, args.destination)
+    if io.read() ~= "y" then
+        return
+    end
+end
 
 ----------
 
