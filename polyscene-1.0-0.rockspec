@@ -5,11 +5,11 @@ source = {
 }
 description = {
 	summary = "A CLI tool for transcluding Polytoria worlds",
-	-- detailed = [[
-	-- 	TODO: Write a detailed description
-	-- ]],
-	-- homepage = "http://leafo.net/lua-enet",
-	-- license = "MIT"
+	detailed = [[
+		A Godot-like scene system for adding to and removing from a Polytoria .poly world file.
+	]],
+	homepage = "http://github.com/little-meow-meow/polyscene",
+	license = "MIT"
 }
 dependencies = {
 	"lua >= 5.1",
