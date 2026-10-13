@@ -1,0 +1,113 @@
+require("common")
+local argparse = require("argparse")
+local PolyWorld = require("polyworld")
+
+local parser = argparse("polyscene", "transclude the contents of .poly files into other .poly files")
+parser:argument("command", "What to do with the scene"):choices({"add", "remove"})
+parser:argument("destination", "The .poly file to add the scene into")
+parser:argument("source", "The .poly file to add into the target .poly")
+-- parser:option("-y --yes", "Skip prompting the user for confirmation")
+
+local args = parser:parse()
+
+----------
+
+local source = PolyWorld.new(args.source)
+local destination = PolyWorld.new(args.destination)
+
+local SKIP_CLASSES = {
+    ["AchievementsService"] = true,
+    ["Camera"] = true,
+    ["CaptureService"] = true,
+    ["CoreUIService"] = true,
+    ["Environment"] = true,
+    -- ["GradientSky"] = true,
+    ["Hidden"] = true,
+    ["Inventory"] = true,
+    ["Lighting"] = true,
+    -- ["Model"] = true,
+    -- ["Part"] = true,
+    ["PlayerDefaults"] = true,
+    ["PlayerGUI"] = true,
+    ["Players"] = true,
+    -- ["PointLight"] = true,
+    ["ScriptService"] = true,
+    ["ServerHidden"] = true,
+    -- ["ServerScript"] = true,
+    -- ["SpotLight"] = true,
+    ["Stats"] = true,
+    -- ["SunLight"] = true,
+    ["Teams"] = true,
+    ["World"] = true,
+}
+
+---@param sourceObject PolyObject
+local function addObject(sourceObject)
+    if destination:getObjectsMap()[sourceObject.ID] then
+        return false
+    end
+
+    if SKIP_CLASSES[sourceObject.ClassName] then
+        return false
+    end
+
+    local sourceObjectPath = source:getObjectPath(sourceObject)
+
+    if destination:getObject(sourceObjectPath) ~= nil then
+        printf("[WARN] Conflicting object path %s", sourceObjectPath)
+        return false
+    end
+
+    local sourceParentPath = string.drop(sourceObjectPath, ".")
+    destination:addChild(sourceParentPath, sourceObject)
+
+    return true
+end
+
+local function removeObject(sourceObject)
+    if not destination:getObjectsMap()[sourceObject.ID] then
+        return false
+    end
+
+    if SKIP_CLASSES[sourceObject.ClassName] then
+        return false
+    end
+
+    destination:removeChild(sourceObject.ID)
+
+    return true
+end
+
+local Commands = {
+    ["add"] = addObject,
+    ["remove"] = removeObject,
+}
+
+-----------
+
+local operant = Commands[args.command]
+
+local tally = 0
+
+-- We need to do a breadth first search here, otherwise parents will not exist to hold children.
+
+---@type [PolyObject]
+---@diagnostic disable-next-line: invisible
+local queue = { source.raw.Objects[1] }
+while #queue > 0 do
+    ---@type PolyObject
+    local sourceObject = table.remove(queue, 1)
+
+    if operant(sourceObject) then
+        tally = tally + 1
+    end
+
+    for _, child in pairs(sourceObject.Children) do
+        table.insert(queue, child)
+    end
+end
+
+printf("Operated on %d objects", tally)
+
+printf("Saving to file %s", args.destination)
+destination:saveToDisk(args.destination)
