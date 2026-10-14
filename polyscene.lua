@@ -6,8 +6,8 @@ local parser = argparse("polyscene", "transclude the contents of .poly files int
 parser:argument("command", "What to do with the scene"):choices({"add", "remove"})
 parser:argument("destination", "The .poly file to add the scene into")
 parser:argument("source", "The .poly file to add into the target .poly")
-parser:option("-y --yes", "Skip prompting the user for confirmation", false):args("?")
 parser:option("-x", "Object path relocation, e.g. -x \"World.Environment=World.ServerHidden\" to redirect objects in Environment to ServerHidden"):count("*")
+parser:flag("-y --yes", "Skip prompting the user for confirmation")
 parser:flag("-m --makefolders", "Generate folder objects for non-existent parent paths")
 
 local args = parser:parse()
