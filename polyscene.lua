@@ -67,6 +67,12 @@ local function addObject(sourceObject)
     end
 
     local sourceObjectPath = source:getObjectPath(sourceObject)
+    for from, to in pairs(RelocationMap) do
+        if sourceObjectPath:startswith(from) then
+            sourceObjectPath = sourceObjectPath:replace(from, to)
+            break
+        end
+    end
 
     if destination:getObject(sourceObjectPath) ~= nil then
         printf("[WARN] Conflicting object path %s", sourceObjectPath)
@@ -74,12 +80,6 @@ local function addObject(sourceObject)
     end
 
     local sourceParentPath = string.drop(sourceObjectPath, ".")
-    for from, to in pairs(RelocationMap) do
-        if sourceParentPath:startswith(from) then
-            sourceParentPath = sourceParentPath:replace(from, to)
-            break
-        end
-    end
 
     destination:addChild(sourceParentPath, sourceObject)
 
