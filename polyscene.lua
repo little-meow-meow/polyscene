@@ -7,6 +7,7 @@ parser:argument("command", "What to do with the scene"):choices({"add", "remove"
 parser:argument("destination", "The .poly file to add the scene into")
 parser:argument("source", "The .poly file to add into the target .poly")
 parser:option("-y --yes", "Skip prompting the user for confirmation", false):args("?")
+parser:option("-x", "Object path relocation, e.g. -x \"World.Environment=World.ServerHidden\" to redirect objects in Environment to ServerHidden"):count("*")
 
 local args = parser:parse()
 
@@ -48,6 +49,13 @@ local SKIP_CLASSES = {
     ["World"] = true,
 }
 
+---@type {string: string}
+local RelocationMap = {}
+for _, relocation in ipairs(args.x) do
+    local _, _, from, to = string.find(relocation, "([%w%.]+)=([%w%.]+)")
+    RelocationMap[from] = to
+end
+
 ---@param sourceObject PolyObject
 local function addObject(sourceObject)
     if destination:getObjectsMap()[sourceObject.ID] then
@@ -66,6 +74,13 @@ local function addObject(sourceObject)
     end
 
     local sourceParentPath = string.drop(sourceObjectPath, ".")
+    for from, to in pairs(RelocationMap) do
+        if sourceParentPath:startswith(from) then
+            sourceParentPath = sourceParentPath:replace(from, to)
+            break
+        end
+    end
+
     destination:addChild(sourceParentPath, sourceObject)
 
     return true
