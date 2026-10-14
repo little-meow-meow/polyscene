@@ -6,6 +6,7 @@ local ObjectClasses = {
     "CaptureService",
     "CoreUIService",
     "Environment",
+    "Folder",
     "GradientSky",
     "Hidden",
     "Inventory",

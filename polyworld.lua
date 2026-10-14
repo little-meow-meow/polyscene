@@ -170,4 +170,52 @@ function PolyWorld:removeChild(objectId)
     self.objectPathMap[object] = nil
 end
 
+---Create a folder object at the given object path.
+---@param objectPath string
+---@param existOk boolean? if false, throws an error if the object path is already occupied
+function PolyWorld:makeFolder(objectPath, existOk)
+    if self:getObject(objectPath) then
+        if existOk then
+            return
+        end
+        errorf("Cannot make folder: object path %s is occupied", objectPath)
+    end
+
+    local parentObjectPath = string.drop(objectPath, ".")
+
+    ---@type PolyObject
+    local folder = {
+        Children = {},
+---@diagnostic disable-next-line: assign-type-mismatch
+        ClassName = "Folder",
+        ID = uuid(),
+        IsLinkedChild = false,
+        Name = string.pickup(objectPath, "."),
+        Properties = {
+            Tags = {},
+        },
+    }
+
+    self:addChild(parentObjectPath, folder)
+end
+
+---Given an object path, create folder objects for non-existent objects in the path.
+---@param objectPath string
+function PolyWorld:makeFolders(objectPath)
+    local searchStartIndex = 1
+    while searchStartIndex < #objectPath do
+        local matchStart, matchEnd, _ = string.find(objectPath, ".", searchStartIndex, true)
+        if not matchStart or not matchEnd then
+            break
+        end
+
+        local subRootPath = string.sub(objectPath, 1, matchEnd - 1)
+        self:makeFolder(subRootPath, true)
+
+        searchStartIndex = matchEnd + 1
+    end
+
+    self:makeFolder(objectPath, true)
+end
+
 return PolyWorld

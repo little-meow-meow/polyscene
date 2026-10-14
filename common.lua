@@ -17,13 +17,21 @@ function string.lastIndexOf(haystack, needle)
     end
 end
 
----Drops everything in the string after the last occurrence of `needle`, including `needle`
+---Drops everything in the string after the last occurrence of `separator`, including `separator`
 ---@param haystack string
 ---@param separator string
 ---@return string
 function string.drop(haystack, separator)
     local lastIndex = haystack:lastIndexOf(separator)
     return haystack:sub(1, (lastIndex or 0) - 1)
+end
+
+---Drops everything in the string before the last occurrence of `separator`, including `separator`
+---@param haystack any
+---@param separator any
+function string.pickup(haystack, separator)
+    local lastIndex = haystack:lastIndexOf(separator)
+    return haystack:sub((lastIndex or 0) + 1)
 end
 
 function string.contains(s, sub)
@@ -54,4 +62,14 @@ function string.replace(s, old, new)
     end
 
     return s
+end
+
+math.randomseed(os.time())
+function uuid()
+    local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    local result, _ = string.gsub(template, '[xy]', function (c)
+        local v = (c == 'x') and math.random(0, 0xf) or math.random(8, 0xb)
+        return string.format('%x', v)
+    end)
+    return result
 end
